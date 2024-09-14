@@ -9,20 +9,20 @@ namespace skinet.Server.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-        public class ProductsController(IProductRepository repo) : ControllerBase
+        public class ProductsController(IGenericRepository<Product> repo) : ControllerBase
     {
-        private readonly IProductRepository repo = repo;
+        private readonly IGenericRepository<Product> repo = repo;
 
         [HttpGet]
         public async Task<ActionResult<IReadOnlyList<Product>>> GetProducts(string? brand, string? type, string? sort)
         {
-            return Ok(await repo.GetProductsAsync(brand, type, sort));
+            return Ok(await repo.ListAllAsync());
         }
 
         [HttpGet("{id:int}")]
         public async Task<ActionResult<Product>> GetProduct(int id)
         {
-            var product = await repo.GetProductByIdAsync(id);
+            var product = await repo.GetByIdAsync(id);
             
             if (product == null) return NotFound();
  
@@ -32,8 +32,8 @@ namespace skinet.Server.Controllers
         [HttpPost]
         public async Task<ActionResult<Product>> CreateProduct(Product product)
         {
-            repo.AddProduct(product);
-           if (await repo.SaveChangesAsync())
+            repo.Add(product);
+           if (await repo.SaveAllAsync())
             {
                 return CreatedAtAction("GetProducts", new { Id = product.Id }, product);
             }
@@ -46,9 +46,9 @@ namespace skinet.Server.Controllers
         {
             if (product.Id != id || !ProductExists(id)) return BadRequest("This product can not be updated");
 
-            repo.UpdateProduct(product);
+            repo.Update(product);
             
-             if(await repo.SaveChangesAsync())
+             if(await repo.SaveAllAsync())
             {
                 return NoContent();
             }
@@ -58,13 +58,13 @@ namespace skinet.Server.Controllers
         [HttpDelete("{id:int}")]
         public async Task<ActionResult> DeleteProduct(int id)
         {
-            var product = await repo.GetProductByIdAsync(id);
+            var product = await repo.GetByIdAsync(id);
             
             if (product == null) return NotFound();
 
-            repo.DeleteProduct(product);
+            repo.Remove(product);
 
-            if (await repo.SaveChangesAsync())
+            if (await repo.SaveAllAsync())
             {
                 return NoContent();
             }
@@ -75,18 +75,20 @@ namespace skinet.Server.Controllers
         [HttpGet("brands")]
         public async Task<ActionResult> GetBrands()
         {
-            return Ok(await repo.GetBrandsAsync());
+            // TODO: GetBrands
+            return Ok();
         }
         
         [HttpGet("types")]
         public async Task<ActionResult> GetTypes()
         {
-            return Ok(await repo.GetTypesAsync());
+            //TODO: GetTypes
+            return Ok();
         }
 
         private bool ProductExists(int id)
         {
-            return repo.ProductExists(id);
+            return repo.Exists(id);
         }
     }
 }
