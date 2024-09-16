@@ -5,23 +5,22 @@ using Infrastructure.Data;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Query;
+using skinet.Server.RequestHelpers;
 
 namespace skinet.Server.Controllers
 {
-    [ApiController]
-    [Route("api/[controller]")]
-        public class ProductsController(IGenericRepository<Product> repo) : ControllerBase
+  
+        public class ProductsController(IGenericRepository<Product> repo) : BaseApiController
     {
         private readonly IGenericRepository<Product> repo = repo;
 
         [HttpGet]
-        public async Task<ActionResult<IReadOnlyList<Product>>> GetProducts(string? brand, string? type, string? sort)
+        public async Task<ActionResult<IReadOnlyList<Product>>> GetProducts(
+            [FromQuery]ProductSpecPrams specPrams)
         {
-            var spec = new ProductSpecification(brand, type, sort);
-            
-            var product = await repo.ListAsync(spec);
-
-            return Ok(product);
+            var spec = new ProductSpecification(specPrams);
+                     
+            return await CreatePagedResults(repo, spec, specPrams.PageIndex, specPrams.PageSize);
         }
 
         [HttpGet("{id:int}")]
