@@ -11,6 +11,7 @@ namespace Core.Specification
     public class ProductSpecification : BaseSpecification<Product>
     {
         public ProductSpecification(ProductSpecPrams specPrams) : base(x =>
+        (string.IsNullOrEmpty(specPrams.Search) || x.Name.ToLower().Contains(specPrams.Search)) &&
          (!specPrams.Brands.Any() || specPrams.Brands.Contains(x.Brand)) &&
          (!specPrams.Types.Any() || specPrams.Types.Contains(x.Type))
         )
